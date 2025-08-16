@@ -2,9 +2,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import React from "react";
 
-import ExpenseScreen from "./ExpenseScreen";
-import IncomeScreen from "./IncomeScreen";
-import ReportScreen from "./ReportScreen";
+import IncomeScreen from "./Gelirler";
+import ExpenseScreen from "./Giderler";
+import ReportScreen from "./Rapor";
 
 const Tab = createBottomTabNavigator();
 
