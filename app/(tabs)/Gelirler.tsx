@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Dimensions, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { Alert, Dimensions, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { PieChart } from "react-native-chart-kit";
 
 export default function Income() {
@@ -7,11 +7,46 @@ export default function Income() {
   const [amount, setAmount] = useState("");
   const [incomes, setIncomes] = useState<any[]>([]);
 
-  const handleAddIncome = () => {
+  // Backend'den gelirleri çekme
+  const fetchIncomes = async () => {
+    try {
+      const response = await fetch("https://localhost:5001/api/income");
+      const data = await response.json();
+      setIncomes(data);
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Hata", "Gelirler alınamadı.");
+    }
+  };
+
+  useEffect(() => {
+    fetchIncomes();
+  }, []);
+
+  // Yeni gelir ekleme
+  const handleAddIncome = async () => {
     if (type && amount) {
-      setIncomes([...incomes, { type, amount: parseFloat(amount) }]);
-      setType("");
-      setAmount("");
+      try {
+        const response = await fetch("https://localhost:5001/api/income", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ type, amount: parseFloat(amount) }),
+        });
+
+        if (response.ok) {
+          Alert.alert("Başarılı", "Gelir eklendi!");
+          setType("");
+          setAmount("");
+          fetchIncomes(); // Listeyi güncelle
+        } else {
+          Alert.alert("Hata", "Gelir eklenemedi.");
+        }
+      } catch (error) {
+        console.error(error);
+        Alert.alert("Hata", "Sunucuya bağlanılamadı.");
+      }
+    } else {
+      Alert.alert("Uyarı", "Lütfen tüm alanları doldurun.");
     }
   };
 
@@ -30,8 +65,8 @@ export default function Income() {
       {incomes.length > 0 && (
         <PieChart
           data={chartData}
-          width={Dimensions.get("window").width * 0.45}
-          height={180}
+          width={Dimensions.get("window").width * 0.9}
+          height={220}
           chartConfig={chartConfig}
           accessor={"population"}
           backgroundColor={"transparent"}
@@ -61,7 +96,7 @@ export default function Income() {
       {/* Liste */}
       <FlatList
         data={incomes}
-        keyExtractor={(_, index) => index.toString()}
+        keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => (
           <View style={styles.item}>
             <Text style={styles.itemText}>{item.type}</Text>
